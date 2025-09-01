@@ -17,7 +17,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="" class="nav-link {{ request()->is('permissions*') ? 'active' : '' }}">
+            <a href="{{ route('permissions.index') }}" class="nav-link {{ request()->is('permissions*') ? 'active' : '' }}">
                 Permissions
             </a>
         </li>
