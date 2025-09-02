@@ -36,7 +36,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
-            'roles' => 'required|array',
+            'roles'    => 'nullable|array',
+            
         ]);
 
         $user = new User();
@@ -47,8 +48,10 @@ class UserController extends Controller
 
 
 
+          if (!empty($validated['roles'])) {
         $roleIds = Role::whereIn('name', $validated['roles'])->pluck('id')->toArray();
         $user->roles()->sync($roleIds);
+    }
 
         return redirect()->route('users.index')->with('success', 'User created and role assigned successfully!');
     }

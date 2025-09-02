@@ -35,26 +35,23 @@ class PermissionController extends Controller
     {
         $request->validate([
             'module_name' => 'required|string|max:255',
-            'access' => 'required|string|max:255|unique:permissions,name',
+            'access'      => 'required|string|max:255|unique:permissions,name',
             'description' => 'nullable|string|max:500',
         ]);
 
-        $module = Module::where('name', $request->module_name)->first();
+        $module = Module::firstOrCreate(['name' => $request->module_name]);
 
-        if (!$module) {
-            $module = new Module();
-            $module->name = $request->module_name;
-            $module->save();
-        }
-        $permission = new Permission();
-        $permission->name = $request->access;
-        $permission->description = $request->description ?? null;
+        $permission = new Permission([
+            'name'        => $request->access,
+            'description' => $request->description ?? null,
+        ]);
 
-        $permission->save();
+        $module->permissions()->save($permission);
 
         return redirect()->route('permissions.index')
             ->with('success', 'Module and Permission created successfully!');
     }
+
 
     /**
      * Display the specified resource.
@@ -69,7 +66,11 @@ class PermissionController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data['modules'] = Module::findOrFail($id);
+        $data['permissions'] = Permission::findOrFail($id);
+
+
+        return view('UserManagement.Permission.edit', $data);
     }
 
     /**
@@ -77,14 +78,38 @@ class PermissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'module_name'  => 'required|string|max:255',
+            'access'       => 'required|string|max:255',
+            'description'  => 'nullable|string|max:500',
+        ]);
+
+        $module = Module::findOrFail($id);
+        $module->name = $request->module_name;
+        $module->save();
+
+        $permission = Permission::findOrFail($id);
+        $permission->name = $request->access;
+        $permission->description = $request->description;
+        $permission->save();
+
+        return redirect()->route('permissions.index')
+            ->with('success', 'Module and Permission updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        $module = Module::findOrFail($id);
+
+        $module->permissions()->delete();
+
+        $module->delete();
+
+        return redirect()->route('permissions.index')
+            ->with('success', 'Module and its permissions deleted successfully.');
     }
 }

@@ -27,7 +27,7 @@
         </div>
        <div class="form-group">
     <label for="roles">Assign Roles</label>
-    <select name="roles[]" id="roles" class="form-control" multiple required>
+    <select name="roles[]" id="roles" class="form-control" multiple >
         @foreach($roles as $role)
             <option value="{{ $role->name }}">{{ $role->name }}</option>
 

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Module;
+use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Auth\Events\Validated;
+use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
@@ -53,28 +56,64 @@ class RoleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
-    {
-        $role = Role::findOrFail($id);
-        return view('UserManagement.Roles.edit', compact('role'));
-    }
+public function edit($id)
+{
+    $role = Role::findOrFail($id);
+
+    $modules = Module::all();
+    $permissions = Permission::all();
+
+    $rolePermissions = DB::table('role_permission')
+        ->where('role_id', $role->id)
+        ->get()
+        ->groupBy('module_id')
+        ->map(function ($items) {
+            return $items->pluck('permission_id')->toArray();
+        })
+        ->toArray();
+
+    return view('UserManagement.Roles.edit', compact('role', 'modules', 'permissions', 'rolePermissions'));
+}
+
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+   public function update(Request $request, $id)
+{
+    $role = Role::findOrFail($id);
 
-        $roles = Role::findOrFail($id);
-        $roles->name = $request->name;
-        $roles->description = $request->description;
-        $roles->save();
-        return redirect()->route('roles.index')->with('success', 'Role updated successfully!');
+    $request->validate([
+        'name'        => 'required|string|max:255',
+        'description' => 'nullable|string|max:500',
+        'permissions' => 'array',
+    ]);
+
+    $role->update([
+        'name'        => $request->name,
+        'description' => $request->description,
+    ]);
+
+    DB::table('role_permission')->where('role_id', $role->id)->delete();
+
+    if ($request->has('permissions')) {
+        foreach ($request->permissions as $moduleId => $permissionIds) {
+            foreach ($permissionIds as $permissionId) {
+                DB::table('role_permission')->insert([
+                    'role_id'       => $role->id,
+                    'permission_id' => $permissionId,
+                    'module_id'     => $moduleId,
+                    'created_at'    => now(),
+                    'updated_at'    => now(),
+                ]);
+            }
+        }
     }
+
+    return redirect()->route('roles.index')->with('success', 'Role updated successfully.');
+}
+
 
     /**
      * Remove the specified resource from storage.

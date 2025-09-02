@@ -10,4 +10,8 @@ class Module extends Model
     use HasFactory;
 
     protected $guarded=['id'];
+     public function permissions()
+    {
+        return $this->hasMany(Permission::class, 'module_id');
+    }
 }
