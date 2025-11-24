@@ -32,11 +32,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
-            'roles'    => 'nullable|array',
+            'roles'    => 'nullable',
             
         ]);
 
@@ -49,8 +50,9 @@ class UserController extends Controller
 
 
           if (!empty($validated['roles'])) {
-        $roleIds = Role::whereIn('name', $validated['roles'])->pluck('id')->toArray();
-        $user->roles()->sync($roleIds);
+        $roleIds = Role::findOrFail($request->roles);
+        // dd($roleIds);
+        $user->roles()->attach($roleIds);
     }
 
         return redirect()->route('users.index')->with('success', 'User created and role assigned successfully!');
@@ -82,15 +84,16 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'string|required',
             'email' => 'required',
-            'roles' => 'required|array'
+            'roles' => 'required'
         ]);
 
         $user = User::findOrFail($id);
         $user->name = $request->name;
         $user->email = $request->email;
         $user->save();
-        $roleIds = Role::whereIn('name', $request->roles)->pluck('id')->toArray();
-        $user->roles()->sync($roleIds);
+        // $roleIds = Role::whereIn('name', $request->roles)->pluck('id')->toArray();
+        $roleIds = Role::findOrfail($request->roles);
+        $user->roles()->attach($roleIds);
 
         return redirect()->route('users.index')->with('success', 'User created and role assigned successfully!');
     }

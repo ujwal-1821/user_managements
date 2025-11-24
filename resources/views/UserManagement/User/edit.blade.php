@@ -20,10 +20,10 @@
         </div>
 
         <div class="form-group mb-3">
-            <label for="roles">Assign Roles</label>
-            <select name="roles[]" id="roles" class="form-control" multiple required>
+            <label for="roles" class="form-label">Assign Roles</label>
+            <select name="roles" id="roles" class="form-control"  required>
                 @foreach($roles as $role)
-                    <option value="{{ $role->name }}"
+                    <option value="{{ $role->id }}"
                         {{ in_array($role->id, $user->roles->pluck('id')->toArray()) ? 'selected' : '' }}>
                         {{ $role->name }}
                     </option>

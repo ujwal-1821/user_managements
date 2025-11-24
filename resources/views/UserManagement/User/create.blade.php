@@ -25,11 +25,12 @@
             <input type="password" name="password_confirmation" class="form-control" required>
             @error('password_confirmation') <small class="text-danger">{{ $message }}</small>@enderror
         </div>
-       <div class="form-group">
-    <label for="roles">Assign Roles</label>
-    <select name="roles[]" id="roles" class="form-control" multiple >
+       <div class="form-group mb-3">
+    <label for="roles" class="form-label">Assign Roles</label>
+    <select name="roles" id="roles" class="form-control" >
+        <option value="">Select role</option>
         @foreach($roles as $role)
-            <option value="{{ $role->name }}">{{ $role->name }}</option>
+            <option value="{{ $role->id}}">{{ $role->name }}</option>
 
         @endforeach
     </select>
